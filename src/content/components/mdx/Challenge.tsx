@@ -12,6 +12,7 @@ import {
   ModalHeader,
   ModalOverlay,
   Text,
+  Tooltip,
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
@@ -24,6 +25,7 @@ import DatabaseService from "~/ctrl/services/database";
 import ErrorHandlingService from "~/ctrl/services/errorHandling";
 import UserDataService from "~/ctrl/services/userData";
 import useCourseData from "~/ctrl/store/courseData";
+import useUserData from "~/ctrl/store/userData";
 
 import { inlineCodeStyle } from "~/content/components/mdx/index";
 
@@ -151,16 +153,24 @@ export const _ChallengeModalBody = () => {
     }
   }
 
+  const hasCompletedChallenge = useUserData(store =>
+    store.completed.challenges.includes(`${courseId}/${chapter}.${pageId}`)
+  );
+
   return (
     <Box>
       <VStack w={"full"} align={"start"}>
         <Box pb={2} sx={inlineCodeStyle}>
           {description}
         </Box>
-        <Button colorScheme={"green"} onClick={submitAnswer} w={"full"}>
-          Check answer
-        </Button>
-        {submitted && (
+        <Tooltip label={"Nice work completing this challenge!"}>
+          <Box w={"full"}>
+            <Button colorScheme={"green"} onClick={submitAnswer} w={"full"} disabled={hasCompletedChallenge}>
+              Complete
+            </Button>
+          </Box>
+        </Tooltip>
+        {submitted && answer[0] && (
           <Box ref={answerRef} pt={4} w={"full"}>
             {answer[0]}
           </Box>

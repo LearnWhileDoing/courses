@@ -89,7 +89,7 @@ const mdxComponents: Record<string, React.ReactNode> = {
     </Box>
   ),
   hr: () => (
-    <Box py={5} w={"full"}>
+    <Box py={5} w={"full"} color={"gray.200"}>
       <Divider />
     </Box>
   ),

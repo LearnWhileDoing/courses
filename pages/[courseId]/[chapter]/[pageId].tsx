@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 
 import { Box, Flex, useDisclosure } from "@chakra-ui/react";
 import withShiki from "@stefanprobst/remark-shiki";
+import { AnimatePresence, motion } from "framer-motion";
 import { GetServerSideProps, GetStaticPaths } from "next";
 import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
@@ -102,40 +103,6 @@ export default function CourseContent({ index, rawPage, course }: CourseContentP
    */
   //getEarnedCertificates(certificates, userData?.current[courseId] || []);
 
-  const {
-    isOpen: isCompletedCourseDialogOpen,
-    onOpen: openCompletedCourseDialog,
-    onClose: closeCompletedCourseDialog,
-  } = useDisclosure();
-
-  /**
-   * Check for course completion
-   */
-  useEffect(() => {
-    if (isDBLoading) return;
-
-    const allCourseSlugs = generateSlugsFromCourseIndex(index);
-    const completedCourseSlugs = mapOf(
-      ...Object.entries(courseProgress)
-        .map(([chapterId, chapter]) =>
-          mapOf(
-            ...Object.entries(chapter).map(
-              ([pageId, pageProgress]) => [`${chapterId}/${pageId}`, pageProgress] as [string, number]
-            )
-          )
-        )
-        .map(value => Object.entries(value))
-        .flat()
-        .filter(v => v[1] >= 3)
-    );
-
-    const hasCompletedAllPages =
-      allCourseSlugs.every(v => Object.keys(completedCourseSlugs).includes(v)) &&
-      Object.keys(completedCourseSlugs).every(v => allCourseSlugs.includes(v));
-
-    if (hasCompletedAllPages) openCompletedCourseDialog();
-  }, [courseProgress?.[chapter]?.[pageId]]);
-
   async function onNavigate(slug: string) {
     await router.push(`/${courseId}/${slug}`);
   }
@@ -153,24 +120,38 @@ export default function CourseContent({ index, rawPage, course }: CourseContentP
             <CourseIndexDisplay index={index} />
             <Box minH={"full"} w={"full"} bg={"white"} flex={1} pt={20}>
               <Flex ml={{ base: 0, md: 80 }} justify={"center"}>
-                <Box w={"100%"} maxW={{ base: "3xl", lg: "4xl" }} flex={1} px={{ base: 8, lg: 16 }} pb={12}>
-                  <ContentNavbar
-                    index={index}
-                    prevSlug={prevPage?.slug}
-                    nextSlug={nextPage?.slug}
-                    onNavigate={onNavigate}
-                  />
-                  <Flex flexDirection={"column"}>
-                    <PageContent {...index[chapter].content[pageId]}>
-                      <MDXRemote {...rawPage} components={mdxComponents} />
-                    </PageContent>
-                  </Flex>
-                  <Pagination prev={prevPage} next={nextPage} color={course.color + ".500"} onNavigate={onNavigate} />
-                </Box>
+                <AnimatePresence exitBeforeEnter>
+                  <motion.div
+                    key={`${courseId}/${chapter}/${pageId}`}
+                    style={{ width: "100%" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <Box w={"100%"} maxW={{ base: "3xl", lg: "4xl" }} flex={1} px={{ base: 8, lg: 16 }} pb={12}>
+                      <ContentNavbar
+                        index={index}
+                        prevSlug={prevPage?.slug}
+                        nextSlug={nextPage?.slug}
+                        onNavigate={onNavigate}
+                      />
+                      <Flex flexDirection={"column"}>
+                        <PageContent {...index[chapter].content[pageId]}>
+                          <MDXRemote {...rawPage} components={mdxComponents} />
+                        </PageContent>
+                      </Flex>
+                      <Pagination
+                        prev={prevPage}
+                        next={nextPage}
+                        color={course.color + ".500"}
+                        onNavigate={onNavigate}
+                      />
+                    </Box>
+                  </motion.div>
+                </AnimatePresence>
               </Flex>
             </Box>
           </Flex>
-          <CompletedCourseDialog isOpen={isCompletedCourseDialogOpen} onClose={closeCompletedCourseDialog} />
         </>
       )}
     </CourseIndexProvider>
