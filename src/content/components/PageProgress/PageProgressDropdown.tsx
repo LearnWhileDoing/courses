@@ -32,7 +32,7 @@ export const PageProgressDropdown = () => {
         ErrorHandlingService.I.notifyUserOfError(e, "Error updating page progress");
       }
     }
-  }, [courseId, chapter, pageId]);
+  }, [isDBLoading, courseId, chapter, pageId]);
 
   return (
     <Menu>
