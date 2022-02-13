@@ -49,7 +49,6 @@ export const CompletedCourseDialog: React.FC<CompletedCourseDialogProps> = ({ is
             <Button
               colorScheme={"indigo"}
               onClick={async () => {
-                await UserDataService.completeCourse(courseId);
                 await router.push("/");
               }}
               ml={3}
